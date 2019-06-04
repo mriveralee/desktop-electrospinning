@@ -164,5 +164,3 @@ void updateStatusLEDState() {
   }
   digitalWrite(HV_ENABLED_STATUS_LED_PIN, IS_HV_ENABLED ? HIGH : LOW);
 }
-
-

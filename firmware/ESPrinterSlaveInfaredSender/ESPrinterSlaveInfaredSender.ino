@@ -42,7 +42,7 @@ unsigned int SEND_CODE_LENGTH  = 16;
 int SEND_CODE_TYPE = NEC;
 
 // Timing Vars
-long SEND_TIME_DELAY = 10;
+long SEND_TIME_DELAY = 40;
 long LAST_SEND_IR_TIME = 0;
 
 const int TRIGGER_SEND_IR_STATUS_PIN = 12;  // Status pin connected to the 3D Printer 
@@ -82,4 +82,3 @@ void sendCode(int codeType, unsigned int codeToSend, int lenOfIR) {
     Serial.println(codeToSend, HEX);
   }
 }
-
