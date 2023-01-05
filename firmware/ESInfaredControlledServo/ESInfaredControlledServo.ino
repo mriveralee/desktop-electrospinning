@@ -41,12 +41,14 @@ unsigned int RECEIVED_CODE_LENGTH  = 2; // The length of the code
 int RECEIVED_CODE_TYPE = NEC; // The type of code (NEC, SONY, UNKNOWN, etc.)
 unsigned int RECEIVED_CODE_VALUE  = BUTTON_CIRCLE; // The value of a known code
 uint16_t LAST_RECEIVED_CODE = 0; // This keeps track of the last code RX'd
+long LAST_IR_RECEIVED_TIMESTAMP = 0; // timestamp from the last ir signal we decoded 
+
 
 // Set-up for the servo
 Servo HV_SERVO_SWITCH;  // create servo object to control a servo
 const int HV_SERVO_SWITCH_PIN = A5;   // Servo pin
-const int ES_HV_SERVO_STATE_HV_ON = 1300;
-const int  ES_HV_SERVO_STATE_GROUNDED = 800;
+const int ES_HV_SERVO_STATE_ON = 30; 
+const int  ES_HV_SERVO_STATE_GROUNDED = 0;
 
 const int HV_SSR_SWITCH_PIN = A0;         // Solid-state-relay pin
 
@@ -60,6 +62,7 @@ const int HV_ENABLED_STATUS_LED_PIN = 2;  // LED to show if HV is on
 bool IS_IR_RECEIVING = false;
 int IR_STATUS_RECEIVING_TIME_DELAY = 100;
 long LAST_IR_STATUS_LED_TIME = 0;
+long IR_RECEIVING_TIMEOUT_FAILSAFE = 300;
 
 
 void setup() {
@@ -115,10 +118,14 @@ void loop() {
           IS_IR_RECEIVING = false;
     } else {
       IS_IR_RECEIVING = true; // Flip IS_IR_RECEIVING
-    }  
+    } 
     IR_RECEIVER.resume(); // re-enable receive 
+    LAST_IR_RECEIVED_TIMESTAMP = millis();  // track when we last received a decodeable ir signal
+  } 
+  
+  if (millis() - LAST_IR_RECEIVED_TIMESTAMP >= IR_RECEIVING_TIMEOUT_FAILSAFE) {
+    IS_HV_ENABLED = false;
   }
-
   updateStatusLEDState();
   updateHVServoState();
   updateHVSSRState();
@@ -144,13 +151,13 @@ void updateIRReceive() {
 
 void updateHVServoState() {
   if (IS_HV_ENABLED) { 
-      HV_SERVO_SWITCH.writeMicroseconds(ES_HV_SERVO_STATE_HV_ON);
+     HV_SERVO_SWITCH.write(ES_HV_SERVO_STATE_ON);
       Serial.println("HV ON");
   } else {
-      HV_SERVO_SWITCH.writeMicroseconds(ES_HV_SERVO_STATE_GROUNDED);
+      HV_SERVO_SWITCH.write(ES_HV_SERVO_STATE_GROUNDED);
       Serial.println("HV OFF");
   }
-  delay(40);
+  delay(15);
 }
 
 void updateHVSSRState() {
